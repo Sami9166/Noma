@@ -21,25 +21,10 @@ st.set_page_config(page_title="Gemini Chat", page_icon="🎨", layout="centered"
 st.markdown(
     """
 <style>
-    /* 폰트 불러오기 */
-    @font-face {
-        font-family: 'YeogiOttaeJalnan';
-        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_four@1.2/JalnanOTF00.woff') format('woff');
-        font-weight: normal; font-display: swap;
-    }
-    @import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
-
-    /* 전역 스타일: 배경색과 기본 폰트 설정 */
     body, .stApp {
         font-family: 'Noto Sans KR', sans-serif;
         background-color: #1A1A2E;
         color: #E0E0E0;
-    }
-
-    /* 제목(st.title -> h1)에만 특별 폰트 적용 */
-    h1 {
-        font-family: 'YeogiOttaeJalnan', sans-serif;
-        color: #E94560;
     }
 </style>
 """,
@@ -56,7 +41,6 @@ if st.button("새 대화 시작"):
     st.session_state.thread_id = str(uuid.uuid4())
     st.rerun()
 
-# --- 이하 백엔드 로직은 동일 ---
 API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
     st.error("GEMINI_API_KEY 가 설정되어 있지 않습니다.")
@@ -95,7 +79,6 @@ def get_llms():
 
 llms = get_llms()
 
-
 def typewriter(text: str, chunk_size: int = 3, delay_sec: float = 0.03):
     buf = []
     for i, ch in enumerate(text):
@@ -107,7 +90,18 @@ def typewriter(text: str, chunk_size: int = 3, delay_sec: float = 0.03):
     if buf:
         yield "".join(buf)
 
-
+def _run_async(coro):
+    try:
+        return asyncio.run(coro)
+    except RuntimeError:
+        # 이미 루프가 떠있으면 새 루프로 돌림
+        loop = asyncio.new_event_loop()
+        try:
+            asyncio.set_event_loop(loop)
+            return loop.run_until_complete(coro)
+        finally:
+            loop.close()
+            
 async def call_with_mcp(prompt_text: str, thread_id: str):
     init: PipelineState = {
         "user_query": prompt_text,
@@ -158,9 +152,8 @@ if prompt := st.chat_input("메시지를 입력하세요..."):
     with st.chat_message("assistant"):
         output_placeholder = st.empty()
         with st.spinner("🤔 생각 중..."):
-            thread_id = str(uuid.uuid4())
             st_time = time.monotonic()
-            result = asyncio.run(
+            result = _run_async(
                 call_with_mcp(
                     prompt_text=prompt,
                     thread_id=st.session_state.thread_id,

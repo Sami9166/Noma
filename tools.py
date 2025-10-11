@@ -6,11 +6,11 @@ from typing import List, Tuple, Dict, Optional, Any, Literal
 from holidayskr import year_holidays
 from datetime import date
 from dateutil.relativedelta import relativedelta
+from functools import lru_cache
 import datetime
 import requests
 import json
 import os
-import streamlit as st
 import pandas as pd
 
 
@@ -48,12 +48,12 @@ class ToolOutput(BaseModel):
         None, description="프로그래밍 에러에 대한 상세 정보"
     )
 
-@st.cache_data
+@lru_cache(maxsize=1)
 def _load_df() -> pd.DataFrame:
     return pd.read_csv(f"{BASE_DIR}/data/data_final.csv", encoding="utf-8")
 
-# 전역으로 선언해서 여러 번 가져오는 일이 없도록.
-DF = _load_df()
+def _normalize_name(s: str) -> str:
+    return s.strip().replace("*", "")
 
 def filter_data(name: str) -> ToolOutput:
     """가맹점명에 맞는 데이터를 필터링하는 함수입니다. asterisk를 제외한 이름이 같은 것만 필터링합니다.
@@ -65,9 +65,10 @@ def filter_data(name: str) -> ToolOutput:
         ToolOutput: tool 실행 결과.
     """
     try:
-        result = DF[
-            DF["가맹점명"].astype(str).str.replace("*", "") == name.replace("*", "")
-        ]
+        df = _load_df()
+        left = df["가맹점명"].astype(str).str.replace("*", "", regex=False).str.strip()
+        right = _normalize_name(name)
+        result = df[left == right]
         if result.empty:
             return ToolOutput(
                 status="error",
@@ -126,13 +127,13 @@ def get_holidays_in_months() -> ToolOutput:
         undated_events: Optional[List[str]] = time_payload.get("undated_events", None)
 
         events = _get_events(year_str, extra_events)
-        if isinstance(events, Exception):
-            return ToolOutput(status="error", error_status=str(events))
-
         today = date.today()
         n_later = today + relativedelta(months=n + 1, day=1) - relativedelta(days=1)
         # n개월 후 달 전체릂 포함하기 위해 n + 1개월에서 하루를 뺌
 
+        if n_later.year != today.year:
+            events += _get_events(str(n_later.year), extra_events)
+        
         result = []
         # 오늘부터 n개월 내에 있는 모든 holiday 반환
         for d, name in events:
@@ -167,8 +168,10 @@ def get_weather() -> ToolOutput:
         lang: str = weather_payload["lang"]
 
         api = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={WEATHER_API_KEY}&lang={lang}"
-        result = requests.get(api)
-        data = json.loads(result.text)
+        result = requests.get(api, timeout=8)
+        if result.status_code != 200:
+            return ToolOutput(status="error", message="날씨 응답 형식 오류", error_status=data)
+        data = result.json()
         weather_data = data["list"]
         weather_data = [
             (data["weather"][0]["description"], data["main"]["temp"], data["dt_txt"])
