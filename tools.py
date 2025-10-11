@@ -10,6 +10,7 @@ import datetime
 import requests
 import json
 import os
+import streamlit as st
 import pandas as pd
 
 
@@ -47,13 +48,12 @@ class ToolOutput(BaseModel):
         None, description="프로그래밍 에러에 대한 상세 정보"
     )
 
-
+@st.cache_data
 def _load_df() -> pd.DataFrame:
     return pd.read_csv(f"{BASE_DIR}/data/data_final.csv", encoding="utf-8")
 
-
-DF = _load_df()  # 전역으로 선언해서 여러 번 가져오는 일이 없도록.
-
+# 전역으로 선언해서 여러 번 가져오는 일이 없도록.
+DF = _load_df()
 
 def filter_data(name: str) -> ToolOutput:
     """가맹점명에 맞는 데이터를 필터링하는 함수입니다. asterisk를 제외한 이름이 같은 것만 필터링합니다.
