@@ -5,6 +5,7 @@ from mcp.client.stdio import stdio_client
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_mcp_adapters.tools import load_mcp_tools
 from agents import PipelineState, init_mcp_tools, build_graph
+import sys
 import os
 import json
 import uuid
@@ -64,7 +65,7 @@ BASE_DIR = Path(__file__).parent.resolve()
 with open(f"{BASE_DIR}/settings/config.json", "r", encoding="utf-8") as fr:
     CONFIG = json.load(fr)
 MODEL_ID = CONFIG.get("model", "gemini-1.5-flash")
-server_params = StdioServerParameters(command="python", args=[f"{BASE_DIR}/server.py"])
+server_params = StdioServerParameters(command=sys.executable, args=[f"{BASE_DIR}/server.py"])
 
 
 @st.cache_resource
