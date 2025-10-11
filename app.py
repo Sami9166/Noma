@@ -96,14 +96,14 @@ def get_llms():
 llms = get_llms()
 
 
-async def typewriter(text: str, chunk_size: int = 3, delay_sec: float = 0.03):
+def typewriter(text: str, chunk_size: int = 3, delay_sec: float = 0.03):
     buf = []
     for i, ch in enumerate(text):
         buf.append(ch)
         if (i + 1) % chunk_size == 0:
             yield "".join(buf)
             buf = []
-            await asyncio.sleep(delay_sec)
+            time.sleep(delay_sec)
     if buf:
         yield "".join(buf)
 
@@ -139,7 +139,6 @@ async def call_with_mcp(prompt_text: str, thread_id: str):
             f"오류로 인해 답변 생성에 실패했습니다.\n\n오류: {type(e).__name__}"
         )
         return {"text": error_message, "error": str(e), "trace": traceback.format_exc()}
-
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
