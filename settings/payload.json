@@ -1,0 +1,29 @@
+{
+    "func_param": {
+        "time_tool": {
+            "year_str": "2025",
+            "n": 3,
+            "extra_events": {
+                "발렌타이 데이": "02/14",    
+                "화이트 데이": "03/14",
+                "만우절": "04/01",
+                "빼빼로 데이": "11/11"
+            },
+            "undated_events": ["1학기 중간고사(4월 말~ 5월 초)", "1학기 기말고사(7월 초 ~ 7월 중순)", "2학기 중간고사(10월 중순)", "2학기 기말고사(12월 초~ 12월 중순)"]
+        },
+        "weather_tool": {
+            "lat": "37.563539",
+            "lon": "127.036814",
+            "lang": "kr"
+        },
+        "url_tool": {
+            "youtube": "https://www.youtube.com/",
+            "google_map": "https://www.google.com/maps",
+            "naver_map": "https://map.naver.com/p/",
+            "naver": "https://www.naver.com/",
+            "instagram": "https://www.instagram.com/",
+            "tiktok": "https://www.tiktok.com/ko-KR/",
+            "naver_band": "https://www.band.us/ko"
+        }
+    }
+}

@@ -1,0 +1,24 @@
+{
+    "model": "gemini-2.5-flash",
+    "hyperparams": {
+        "data_analyzer": {
+            "temperature": 0.3
+        },
+        "goal_setter": {
+            "temperature": 0.5
+        },
+        "marketer": {
+            "temperature": 0.7
+        },
+        "summarizer": {
+            "temperature": 0.5
+        }
+    },
+    "tools": {
+        "data_analyzer": ["filter_data"],
+        "goal_setter": [],
+        "marketer": ["get_holidays_in_months", "get_weather", "get_sns_url"],
+        "summarizer": []
+    }
+
+}
