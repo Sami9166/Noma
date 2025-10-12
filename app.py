@@ -14,6 +14,7 @@ import time
 import traceback
 import streamlit as st
 
+
 load_dotenv()
 
 st.set_page_config(page_title="Gemini Chat", page_icon="🎨", layout="centered")
@@ -45,6 +46,7 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
     st.error("GEMINI_API_KEY 가 설정되어 있지 않습니다.")
     st.stop()
+
 BASE_DIR = Path(__file__).parent.resolve()
 with open(f"{BASE_DIR}/settings/config.json", "r", encoding="utf-8") as fr:
     CONFIG = json.load(fr)
@@ -58,11 +60,13 @@ def get_llms():
         "data_analyzer": ChatGoogleGenerativeAI(
             model=MODEL_ID,
             google_api_key=API_KEY,
+            transport="rest",
             **CONFIG["hyperparams"]["data_analyzer"],
         ),
         "goal_setter": ChatGoogleGenerativeAI(
             model=MODEL_ID,
             google_api_key=API_KEY,
+            transport="rest",
             **CONFIG["hyperparams"]["goal_setter"],
         ),
         "marketer": ChatGoogleGenerativeAI(
@@ -71,6 +75,7 @@ def get_llms():
         "summarizer": ChatGoogleGenerativeAI(
             model=MODEL_ID,
             google_api_key=API_KEY,
+            transport="rest",
             **CONFIG["hyperparams"]["summarizer"],
         ),
     }
@@ -89,18 +94,6 @@ def typewriter(text: str, chunk_size: int = 3, delay_sec: float = 0.03):
             time.sleep(delay_sec)
     if buf:
         yield "".join(buf)
-
-def _run_async(coro):
-    try:
-        return asyncio.run(coro)
-    except RuntimeError:
-        # 이미 루프가 떠있으면 새 루프로 돌림
-        loop = asyncio.new_event_loop()
-        try:
-            asyncio.set_event_loop(loop)
-            return loop.run_until_complete(coro)
-        finally:
-            loop.close()
             
 async def call_with_mcp(prompt_text: str, thread_id: str):
     init: PipelineState = {
@@ -153,7 +146,7 @@ if prompt := st.chat_input("메시지를 입력하세요..."):
         output_placeholder = st.empty()
         with st.spinner("🤔 생각 중..."):
             st_time = time.monotonic()
-            result = _run_async(
+            result = asyncio.run(
                 call_with_mcp(
                     prompt_text=prompt,
                     thread_id=st.session_state.thread_id,
