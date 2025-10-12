@@ -70,7 +70,10 @@ def get_llms():
             **CONFIG["hyperparams"]["goal_setter"],
         ),
         "marketer": ChatGoogleGenerativeAI(
-            model=MODEL_ID, google_api_key=API_KEY, **CONFIG["hyperparams"]["marketer"]
+            model=MODEL_ID, 
+            google_api_key=API_KEY, 
+            transport="rest",
+            **CONFIG["hyperparams"]["marketer"]
         ),
         "summarizer": ChatGoogleGenerativeAI(
             model=MODEL_ID,
