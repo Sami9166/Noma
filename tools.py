@@ -48,14 +48,13 @@ class ToolOutput(BaseModel):
         None, description="프로그래밍 에러에 대한 상세 정보"
     )
 
-@lru_cache(maxsize=1)
-def _load_df() -> pd.DataFrame:
+def load_df() -> pd.DataFrame:
     return pd.read_csv(f"{BASE_DIR}/data/data_final.csv", encoding="utf-8")
 
 def _normalize_name(s: str) -> str:
     return s.strip().replace("*", "")
 
-def filter_data(name: str) -> ToolOutput:
+def filter_data_with_df(df: pd.DataFrame, name: str) -> ToolOutput:
     """가맹점명에 맞는 데이터를 필터링하는 함수입니다. asterisk를 제외한 이름이 같은 것만 필터링합니다.
 
     Args:
@@ -65,7 +64,6 @@ def filter_data(name: str) -> ToolOutput:
         ToolOutput: tool 실행 결과.
     """
     try:
-        df = _load_df()
         left = df["가맹점명"].astype(str).str.replace("*", "", regex=False).str.strip()
         right = _normalize_name(name)
         result = df[left == right]
@@ -73,6 +71,12 @@ def filter_data(name: str) -> ToolOutput:
             return ToolOutput(
                 status="error",
                 message=f"'{name}'과(와) 일치하는 가맹점명을 찾을 수 없습니다.",
+            )
+        elif len(result) > 24:
+            # 필터링된 가맹점이 하나 이상인 경우
+            return ToolOutput(
+                status="error",
+                message=f"'{name}'과(와) 일치하는 가맹점이 너무 많습니다. 다른 정보도 같이 입력해주세요."
             )
         else:
             return ToolOutput(

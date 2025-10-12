@@ -9,6 +9,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from pydantic import BaseModel, Field
 from tools import get_merchant_cls
 import json
+import traceback
 
 class ReasonData(BaseModel):
     """분석 근거 데이터의 구조"""
@@ -94,7 +95,7 @@ async def call_tool(ai: AIMessage, tool_map):
             
             if tool_name in tool_map:
                 function_to_call = tool_map[tool_name]
-                tool_result = await function_to_call.ainvoke(input=tool_args)
+                tool_result = await function_to_call.ainvoke(tool_args)
                 
                 if not isinstance(tool_result, (dict, list, str, int, float, bool, type(None))):
                     serializable_result = tool_result.__dict__
@@ -104,11 +105,11 @@ async def call_tool(ai: AIMessage, tool_map):
                 tool_messages.append(ToolMessage(
                     content=json.dumps(serializable_result, ensure_ascii=False),
                     tool_call_id=tool_id
-                ))                
+                ))  
         return tool_messages
     else:
         return []
-
+    
 async def data_analyzer(state: PipelineState, llm: ChatGoogleGenerativeAI, tools):
     sys = SystemMessage(content=SYS_DATA_ANALYZER)
     user = HumanMessage(content=state.user_query)
@@ -118,11 +119,16 @@ async def data_analyzer(state: PipelineState, llm: ChatGoogleGenerativeAI, tools
         bind_llm = llm.bind_tools(tools)
         
         ai: AIMessage = await bind_llm.ainvoke([sys, user])
+        
+        if not ai.tool_calls:
+            return {
+                "final_output": ai.content
+            }
     
         tool_messages = await call_tool(ai, tool_map)
         messages = [sys, user, ai] + (tool_messages or [])
         response = await st_llm.ainvoke(messages)
-        response.store_info[1] = get_merchant_cls(response.store_info[1]) 
+        response.store_info[1] = get_merchant_cls(response.store_info[1])
     else:
         response = await st_llm.ainvoke([sys, user])
 
@@ -224,7 +230,14 @@ def build_graph(llms: Dict[str, ChatGoogleGenerativeAI], tools: Dict[str, List[A
     graph.add_node("summarizer", partial(summarizer, llm=llms['summarizer'], tools=summarizer_tools))
 
     graph.add_edge(START, "data_analyzer")
-    graph.add_edge("data_analyzer", "goal_setter")
+    graph.add_conditional_edges(
+        "data_analyzer",
+        check_continue,
+        {
+            "continue": "goal_setter",
+            "end": END
+        }
+    )
     graph.add_edge("goal_setter", "marketer")
     graph.add_edge("marketer", "summarizer")
     graph.add_edge("summarizer", END)
