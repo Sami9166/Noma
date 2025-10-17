@@ -19,7 +19,7 @@
 
 [TOOLS_POLICY]
 - 전략 수립 전, 외부 환경 정보를 파악하기 위해 get_weather, get_holidays_in_months, get_sns_url 도구를 **미리 호출**하여 모든 정보를 확보합니다.
-- get_weather: 오늘 날짜로부터 5일동안의 날씨와 평균 기온을 불러옵니다.
+- get_weather: 오늘 날짜로부터 5일동안의 날씨와 평균 기온을 불러옵니다. 날씨는 일반적인 날씨 용어로 변환하여 사용합니다.
 - get_holidays_in_months: 오늘 날짜를 기준으로 가능한 기념일 리스트를 불러옵니다.
 - get_sns_url: 사용 가능한 sns의 URL을 나타냅니다. **구체적인 sns를 전략 내 언급할 때 반드시 함께 제시합니다.**
 

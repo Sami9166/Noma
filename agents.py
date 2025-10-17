@@ -9,7 +9,6 @@ from langgraph.checkpoint.memory import MemorySaver
 from pydantic import BaseModel, Field
 from tools import get_merchant_cls
 import json
-import traceback
 
 class ReasonData(BaseModel):
     """분석 근거 데이터의 구조"""
@@ -79,7 +78,14 @@ def init_mcp_tools(tools, tool_config: Dict[str, List[str]]) -> Dict[str, List[A
     }
 
 def check_continue(state: PipelineState) -> str:
-    """data_analyzer 실행 후 final_output에 값이 채워졌는지 (오류 발생 여부) 확인"""
+    """data analyzer 실행 후, 오류 확인
+
+    Args:
+        state (PipelineState): 그래프 상태
+        
+    Returns:
+        str: continue - 지속, end - langgraph 종로.
+    """
     if state.final_output:
         return "end"
     else:
@@ -96,7 +102,6 @@ async def call_tool(ai: AIMessage, tool_map):
             if tool_name in tool_map:
                 function_to_call = tool_map[tool_name]
                 tool_result = await function_to_call.ainvoke(tool_args)
-                
                 if not isinstance(tool_result, (dict, list, str, int, float, bool, type(None))):
                     serializable_result = tool_result.__dict__
                 else:
@@ -121,14 +126,16 @@ async def data_analyzer(state: PipelineState, llm: ChatGoogleGenerativeAI, tools
         ai: AIMessage = await bind_llm.ainvoke([sys, user])
         
         if not ai.tool_calls:
-            return {
-                "final_output": ai.content
-            }
-    
+            return {"final_output": ai.content}
+
         tool_messages = await call_tool(ai, tool_map)
         messages = [sys, user, ai] + (tool_messages or [])
         response = await st_llm.ainvoke(messages)
-        response.store_info[1] = get_merchant_cls(response.store_info[1])
+        try:
+            response.store_info[1] = get_merchant_cls(response.store_info[1])
+        except IndexError:
+            # 가게 정보가 잘못 적혀서 검색이 안되는 경우.
+            return {"final_output": f"가게명 정보가 명확히 작성되지 못했습니다. 다시 시도해주세요."}
     else:
         response = await st_llm.ainvoke([sys, user])
 

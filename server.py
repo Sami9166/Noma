@@ -11,7 +11,6 @@ def filter_data(name: str) -> ToolOutput:
     """사용자가 입력한 가맹점 이름을 기준으로 데이터를 필터링합니다."""
     return filter_data_with_df(df=DF, name=name)
 
-
 mcp.tool(
     description="""
     사용자가 입력한 가맹점 이름을 기준으로 데이터를 필터링해 반환하는 함수입니다.

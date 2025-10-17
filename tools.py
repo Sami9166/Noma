@@ -6,7 +6,6 @@ from typing import List, Tuple, Dict, Optional, Any, Literal
 from holidayskr import year_holidays
 from datetime import date
 from dateutil.relativedelta import relativedelta
-from functools import lru_cache
 import datetime
 import requests
 import json
@@ -25,7 +24,7 @@ with open(f"{BASE_DIR}/settings/payload.json", "r", encoding="utf-8") as fr:
 
 with open(f"{BASE_DIR}/data/merchant_cls.json", "r", encoding="utf-8") as fr:
     merchant_cls = json.load(fr)
-
+            
 time_payload = payload["time_tool"]
 weather_payload = payload["weather_tool"]
 url_payload = payload["url_tool"]
@@ -102,7 +101,14 @@ def _get_events(
     Returns:
         List[Tuple[date, str]]: 통합된 기념일
     """
-    holidays = year_holidays(year_str)
+    try:
+        holidays = year_holidays(year_str)
+    except:
+        # holidayskr 라이브러리 오류 시 사용할 전역변수.
+        with open(f"{BASE_DIR}/data/holidayskr.json", "r") as fr:
+            HOLIDAY_DATA = json.load(fr)
+        holidays = year_holidays(year_str)
+    
     exist_events = {"신정", "설날", "어린이날", "추석", "크리스마스"}
 
     year_events = [
