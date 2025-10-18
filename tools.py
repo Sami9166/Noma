@@ -53,11 +53,12 @@ def load_df() -> pd.DataFrame:
 def _normalize_name(s: str) -> str:
     return s.strip().replace("*", "")
 
-def filter_data_with_df(df: pd.DataFrame, name: str) -> ToolOutput:
+def filter_data_with_df(df: pd.DataFrame, name: str, local: Optional[str]) -> ToolOutput:
     """가맹점명에 맞는 데이터를 필터링하는 함수입니다. asterisk를 제외한 이름이 같은 것만 필터링합니다.
 
     Args:
         name (str): 입력된 가맹점명
+        local(Optional[str]): 입력된 지역명.
 
     Returns:
         ToolOutput: tool 실행 결과.
@@ -73,9 +74,23 @@ def filter_data_with_df(df: pd.DataFrame, name: str) -> ToolOutput:
             )
         elif len(result) > 24:
             # 필터링된 가맹점이 하나 이상인 경우
+            if local:
+                local_result = result[result["상권"] == local]
+                if len(local_result) <= 24:
+                    return ToolOutput(
+                        status="success",
+                        message=f"{name}(지역: {local})에 대한 가맹점 정보를 성공적으로 조회했습니다. 총 {len(local_result)}건의 데이터가 있습니다.",
+                        data=local_result.to_dict("records")
+                    ) 
+                else:
+                    return ToolOutput(
+                        status="error",
+                        message=f"{name}(지역: {local})로 검색한 결과가 {len(local_result)}개입니다. 가맹점명 및 지역을 다시 확인해주세요."
+                    )
             return ToolOutput(
                 status="error",
-                message=f"'{name}'과(와) 일치하는 가맹점이 너무 많습니다. 다른 정보도 같이 입력해주세요."
+                message=f"'{name}'과(와) 일치하는 가맹점이 {len(result)}개로 너무 많습니다. 정확한 필터링을 위해 해당 가맹점의 지역을 함께 입력해주세요.",
+                data=result.to_dict("records")
             )
         else:
             return ToolOutput(
@@ -86,6 +101,7 @@ def filter_data_with_df(df: pd.DataFrame, name: str) -> ToolOutput:
     except Exception as e:
         return ToolOutput(
             status="error",
+            message=f"툴 함수 실행 중 오류가 발생하였습니다.",
             error_status=str(e)
         )
 

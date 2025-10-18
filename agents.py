@@ -119,27 +119,32 @@ async def data_analyzer(state: PipelineState, llm: ChatGoogleGenerativeAI, tools
     sys = SystemMessage(content=SYS_DATA_ANALYZER)
     user = HumanMessage(content=state.user_query)
     st_llm = llm.with_structured_output(DataAnalysisOutput)
-    if tools:
-        tool_map = {f.name: f for f in tools}   # 함수 이름을 기준으로 map 생성
-        bind_llm = llm.bind_tools(tools)
-        
-        ai: AIMessage = await bind_llm.ainvoke([sys, user])
-        
-        if not ai.tool_calls:
-            return {"final_output": ai.content}
+    try:
+        if tools:
+            tool_map = {f.name: f for f in tools}   # 함수 이름을 기준으로 map 생성
+            bind_llm = llm.bind_tools(tools)
+            
+            ai: AIMessage = await bind_llm.ainvoke([sys, user])
+            
+            if not ai.tool_calls:
+                return {"final_output": ai.content}
+            
+            tool_messages = await call_tool(ai, tool_map)
+            tool_result = json.loads(tool_messages[0].content)  # filter data의 결과
+            tool_result = json.loads(tool_result)   # 2번 감싸져 있으므로 한 번 더 실행.
+            if tool_result['status'] == "error":
+                return {"final_output": tool_result['message']}
+            
+            messages = [sys, user, ai] + (tool_messages or [])
 
-        tool_messages = await call_tool(ai, tool_map)
-        messages = [sys, user, ai] + (tool_messages or [])
-        response = await st_llm.ainvoke(messages)
-        try:
+            response = await st_llm.ainvoke(messages)
             response.store_info[1] = get_merchant_cls(response.store_info[1])
-        except IndexError:
-            # 가게 정보가 잘못 적혀서 검색이 안되는 경우.
-            return {"final_output": f"가게명 정보가 명확히 작성되지 못했습니다. 다시 시도해주세요."}
-    else:
-        response = await st_llm.ainvoke([sys, user])
+        else:
+            response = await st_llm.ainvoke([sys, user])
 
-    return {"data_analysis_result": response.model_dump()}
+        return {"data_analysis_result": response.model_dump()}
+    except Exception:
+        return {"final_output": "예기치 못한 오류가 발생하였습니다. 다시 시도해주세요."}
     
 async def goal_setter(state: PipelineState, llm: ChatGoogleGenerativeAI, tools):
     user_input = state.data_analysis_result.model_dump_json(include={'store_info', 'request', 'analysis', 'marketing_problem', 'reason_data'})

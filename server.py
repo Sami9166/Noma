@@ -1,15 +1,15 @@
 from mcp.server.fastmcp import FastMCP
 from tools import filter_data_with_df, get_holidays_in_months, get_weather, get_sns_url, load_df
 from tools import ToolOutput
-
+from typing import Optional
 
 DF = load_df()
 
 mcp = FastMCP()
 
-def filter_data(name: str) -> ToolOutput:
+def filter_data(name: str, local: Optional[str]) -> ToolOutput:
     """사용자가 입력한 가맹점 이름을 기준으로 데이터를 필터링합니다."""
-    return filter_data_with_df(df=DF, name=name)
+    return filter_data_with_df(df=DF, name=name, local=local)
 
 mcp.tool(
     description="""
