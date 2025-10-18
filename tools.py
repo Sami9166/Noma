@@ -53,7 +53,7 @@ def load_df() -> pd.DataFrame:
 def _normalize_name(s: str) -> str:
     return s.strip().replace("*", "")
 
-def filter_data_with_df(df: pd.DataFrame, name: str, local: Optional[str]) -> ToolOutput:
+def filter_data_with_df(df: pd.DataFrame, name: str, local: Optional[str]=None) -> ToolOutput:
     """가맹점명에 맞는 데이터를 필터링하는 함수입니다. asterisk를 제외한 이름이 같은 것만 필터링합니다.
 
     Args:

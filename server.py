@@ -7,7 +7,7 @@ DF = load_df()
 
 mcp = FastMCP()
 
-def filter_data(name: str, local: Optional[str]) -> ToolOutput:
+def filter_data(name: str, local: Optional[str]=None) -> ToolOutput:
     """사용자가 입력한 가맹점 이름을 기준으로 데이터를 필터링합니다."""
     return filter_data_with_df(df=DF, name=name, local=local)
 
