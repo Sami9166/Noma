@@ -120,7 +120,8 @@ st.markdown(
 
 st.markdown("<h1 class='app-title'>Noma</h1>", unsafe_allow_html=True)
 st.markdown("<p class='app-caption'>데이터로 완성하는 당신만의 AI 마케팅 비서</p>", unsafe_allow_html=True)
-st.markdown("<p class='app-caption'>가맹점명을 입력하면 분석을 시작합니다. (예: 육육**, 그*...)</p>", unsafe_allow_html=True)
+st.markdown("<p class='app-caption'>가맹점명과 요구사항을 입력하면 분석을 시작합니다!</p>", unsafe_allow_html=True)
+st.markdown("<p class='app-caption'>(예: 육육**의 주요 방문고객을 기반으로 마케팅 채널을 추천하고 홍보안을 작성해줘)</p>", unsafe_allow_html=True)
 
 def inject_background(image_path: str, mode: str = "light", opacity: float = 0.10):
     p = Path(image_path)
