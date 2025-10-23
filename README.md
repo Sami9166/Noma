@@ -1,4 +1,4 @@
-<img width="1920" height="424" alt="제목을 입력해주세요  (4)" src="https://github.com/user-attachments/assets/1b5fc56b-c5ec-486c-aef7-6bf25b1e40aa" />
+<img width="1920" height="424" alt="title" src="./assets/title.png"/>
 
 # NoMa
 데이터로 완성하는 당신만의 AI 마케팅 비서
@@ -15,7 +15,7 @@ https://2025-bigcon-noma.streamlit.app/
 GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
 WEATHER_API_KEY = "YOUR_OPENWEATHERMAP_API_KEY"
 ```
-### Setting
+### Initial Setting
   - [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)로 설치하면 됩니다.
 
 ```bash
