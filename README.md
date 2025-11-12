@@ -1,11 +1,8 @@
 <img width="1920" height="424" alt="title" src="./assets/title.png"/>
 
 # NoMa
+2025 제13회 빅콘테스트 AI·데이터 경진대회 팀 Overfitters 제출작  
 데이터로 완성하는 당신만의 AI 마케팅 비서
-
-## Website Link
-https://2025-bigcon-noma.streamlit.app/
-- streamlit cloud로 배포되었습니다.
 
 ## Local Start
 ### Environment Variables
