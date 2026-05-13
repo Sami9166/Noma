@@ -17,8 +17,8 @@ WEATHER_API_KEY = "YOUR_OPENWEATHERMAP_API_KEY"
 
 ```bash
 # Linux and macOS
-git clone https://github.com/Sami9166/2025_bigcon
-cd 2025_bigcon
+git clone https://github.com/Sami9166/Noma
+cd Noma
 
 uv venv
 source .venv/bin/activate
@@ -29,8 +29,8 @@ uv run streamlit run app.py
 ```
 ```bash
 # Window
-git clone https://github.com/Sami9166/2025_bigcon
-cd 2025_bigcon
+git clone https://github.com/Sami9166/Noma
+cd Noma
 
 uv venv
 call .venv/bin/activate
